@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #91dd91;
+            /* Зеленый фон */
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .form-container {
+            background-color: white;
+            color: #00093C;
+            border: 1px solid blue;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary,
+        .form-control {
+            color: black;
+            border: solid 1px blue;
+        }
+
+        .btn-primary {
+            background-color: white;
+            width: 100px; /* Универсальная ширина кнопок */
+        }
+
+        .form-control {
+            width: 100px;
+             /* Универсальная ширина инпутов */
+        }
+
+        label {
+            color: #00093C;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5" id="container">
+        <div class="form-container" id="form-container"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const dummyConfig = { "115": [["Текст1", 30, 10, 5, 50], ["Текст2", 20, 5, 10, 40], ["Текст3", 25, 5, 15, 45]] };
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramP = urlParams.get('p_');
+
+        const config = paramP ? JSON.parse(paramP) : dummyConfig;
+        console.log("Конфигурация:", config);
+
+        const formContainer = document.getElementById("form-container");
+        const container = document.getElementById("container");
+        function createForm(config) {
+            Object.entries(config).forEach(([key, values]) => {
+                values.forEach((item, index) => {
+                    const [labelText, initialValue, step, min, max] = item;
+
+                    const control = document.createElement("div");
+                    control.className = "mb-4";
+
+                    const labelElem = document.createElement("label");
+                    labelElem.textContent = labelText;
+                    labelElem.className = "form-label";
+                    control.appendChild(labelElem);
+
+                    const inputGroup = document.createElement("div");
+                    inputGroup.className = "input-group";
+
+                    const minusButton = document.createElement("button");
+                    minusButton.textContent = "-";
+                    minusButton.className = "btn btn-primary btn-lg";
+                    inputGroup.appendChild(minusButton);
+
+                    const inputField = document.createElement("input");
+                    inputField.type = "number";
+                    inputField.value = initialValue;
+                    inputField.min = min;
+                    inputField.max = max;
+                    inputField.className = "form-control text-center";
+                    inputField.style.backgroundColor = "white"; // Белый фон для инпутов
+                    inputGroup.appendChild(inputField);
+
+                    const plusButton = document.createElement("button");
+                    plusButton.textContent = "+";
+                    plusButton.className = "btn btn-primary btn-lg";
+                    inputGroup.appendChild(plusButton);
+
+                    control.appendChild(inputGroup);
+                    formContainer.appendChild(control);
+
+                    minusButton.addEventListener("click", () => {
+                        const currentValue = parseInt(inputField.value, 10);
+                        const newValue = currentValue - step;
+                        if (newValue >= min) {
+                            inputField.value = newValue;
+                        } else {
+                            alert(`Значение не может быть меньше ${min}`);
+                        }
+                    });
+
+                    inputField.addEventListener("blur", () => {
+                        const value = parseInt(inputField.value, 10);
+                        if (value < min) {
+                            alert(`Значение не может быть меньше ${min}`);
+                            inputField.value = min;
+                        } else if (value > max) {
+                            alert(`Значение не может быть больше ${max}`);
+                            inputField.value = max;
+                        }
+                    });
+
+                    plusButton.addEventListener("click", () => {
+                        const currentValue = parseInt(inputField.value, 10);
+                        const newValue = currentValue + step;
+                        if (newValue <= max) {
+                            inputField.value = newValue;
+                        } else {
+                            alert(`Значение не может быть больше ${max}`);
+                        }
+                    });
+                });
+
+                const buttons = document.createElement("div");
+                buttons.className = "d-flex justify-content-between mt-4";
+
+                const okButton = document.createElement("button");
+                okButton.textContent = "OK";
+                okButton.className = "btn btn-success btn-lg";
+                okButton.style.width = "100px";
+                okButton.addEventListener("click", () => {
+                    const result = Array.from(document.querySelectorAll(".form-control"))
+                        .map(input => input.value)
+                        .join(",");
+                    alert(`${key}=${result}`);
+                });
+                buttons.appendChild(okButton);
+
+                const closeButton = document.createElement("button");
+                closeButton.textContent = "X";
+                closeButton.className = "btn btn-danger btn-lg";
+                closeButton.style.width = "100px";
+                closeButton.addEventListener("click", () => {
+                    container.innerHTML = ''// Полное очищение формы
+                });
+                buttons.appendChild(closeButton);
+
+                formContainer.appendChild(buttons);
+            });
+        }
+
+        if (Object.keys(config).length > 0) {
+            createForm(config);
+        } else {
+            formContainer.innerHTML = '<p class="text-danger">Параметры не найдены</p>';
+        }
+    </script>
+</body>
+
+</html>
